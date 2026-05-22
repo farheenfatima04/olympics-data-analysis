@@ -45,12 +45,15 @@ def data_over_time(df, col):
 
     nations_over_time = (
         df.drop_duplicates(['Year', col])
-        .groupby('Year')[col]
-        .count()
+        .groupby('Year')
+        .count()[col]
         .reset_index()
     )
 
-    nations_over_time.rename(columns={'Year': 'Edition', col: col}, inplace=True)
+    nations_over_time.rename(columns={
+        'Year': 'Edition',
+        col: col
+    }, inplace=True)
 
     return nations_over_time
 
