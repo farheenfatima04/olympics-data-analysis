@@ -97,21 +97,22 @@ elif user_menu == "Country-wise Analysis":
     fig = px.line(country_df, x="Year", y="Medal")
     st.plotly_chart(fig)
 
-    # ---- HEATMAP SAFE FIX (MAIN ERROR FIX) ---- #
-    st.subheader("Sport-wise Performance")
+    # ---- SAFE HEATMAP FIX ---- #
+    st.title(selected_country + " excels in the following sports")
 
     pt = helper.country_event_heatmap(df, selected_country)
 
-    if pt is None or pt.empty or pt.shape[0] == 0 or pt.shape[1] == 0:
-        st.warning("No medal data available for this country")
+    # safety checks
+    if pt is None or pt.empty:
+        st.warning("No data available for this country")
     else:
-        pt = pt.fillna(0).astype(float)
+        pt = pt.fillna(0)
 
         if pt.to_numpy().sum() == 0:
-            st.warning("No medal records found for this country")
+            st.warning("No medal records to display heatmap")
         else:
-            fig, ax = plt.subplots(figsize=(12, 8))
-            sns.heatmap(pt, ax=ax, annot=False)
+            fig, ax = plt.subplots(figsize=(15, 10))
+            sns.heatmap(pt.astype(float), annot=False, cmap="YlGnBu", ax=ax)
             st.pyplot(fig)
 
     # ---- TOP ATHLETES ---- #
