@@ -207,15 +207,20 @@ if user_menu == 'Country-wise Analysis':
 
     st.title(selected_country + " Medal Tally Over the Years")
     st.plotly_chart(fig)
-
+    
     # Heatmap
     st.title(selected_country + " Excels in the Following Sports")
-
     pt = helper.country_event_heatmap(df, selected_country)
-
+    if pt.empty:
+    st.warning("No medal data available for this country.")
+    else:
     fig, ax = plt.subplots(figsize=(20, 20))
 
-    ax = sns.heatmap(pt, annot=True)
+    ax = sns.heatmap(
+        pt,
+        annot=True,
+        fmt=".0f"
+    )
 
     st.pyplot(fig)
 
