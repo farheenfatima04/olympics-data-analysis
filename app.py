@@ -50,31 +50,31 @@ elif user_menu == "Overall Analysis":
     st.write("Athletes:", df['Name'].nunique())
     st.write("Nations:", df['region'].nunique())
 
-    # Over time charts
+    # ---- OVER TIME ---- #
     for col in ["region", "Event", "Name"]:
         data = helper.data_over_time(df, col)
-
         fig = px.line(data, x="Edition", y=col)
         st.plotly_chart(fig)
 
-    # Heatmap (SAFE VERSION)
-    st.title("Events Over Time by Sport")
+    # ---- HEATMAP SAFE ---- #
+    st.subheader("Events Over Time by Sport")
 
     pivot = df.drop_duplicates(['Year', 'Sport', 'Event']).pivot_table(
         index='Sport',
         columns='Year',
         values='Event',
-        aggfunc='count'
-    ).fillna(0)
+        aggfunc='count',
+        fill_value=0
+    )
 
     if pivot.empty:
-        st.warning("No data available for heatmap")
+        st.warning("No data available")
     else:
-        fig, ax = plt.subplots(figsize=(15, 10))
-        sns.heatmap(pivot.astype(int), ax=ax)
+        fig, ax = plt.subplots(figsize=(12, 8))
+        sns.heatmap(pivot.astype(float), ax=ax)
         st.pyplot(fig)
 
-    # Most successful athletes
+    # ---- TOP ATHLETES ---- #
     sport_list = df['Sport'].dropna().unique().tolist()
     sport_list.sort()
     sport_list.insert(0, "Overall")
@@ -93,25 +93,27 @@ elif user_menu == "Country-wise Analysis":
 
     selected_country = st.selectbox("Select Country", country_list)
 
-    # Medal trend
+    # ---- MEDAL TREND ---- #
     country_df = helper.yearwise_medal_tally(df, selected_country)
 
     fig = px.line(country_df, x="Year", y="Medal")
     st.plotly_chart(fig)
 
-    # Heatmap SAFE FIX
+    # ---- HEATMAP SAFE FIX ---- #
     st.subheader("Sport-wise Performance")
 
     pt = helper.country_event_heatmap(df, selected_country)
 
-    if pt.empty:
-        st.warning("No medal data for this country")
+    if pt is None or pt.empty:
+        st.warning("No medal data available")
     else:
+        pt = pt.fillna(0)
+
         fig, ax = plt.subplots(figsize=(12, 8))
-        sns.heatmap(pt.fillna(0).astype(int), ax=ax)
+        sns.heatmap(pt.astype(float), ax=ax)
         st.pyplot(fig)
 
-    # Top athletes
+    # ---- TOP ATHLETES ---- #
     st.table(helper.most_successful_countrywise(df, selected_country))
 
 # ---------------- ATHLETE ANALYSIS ---------------- #
@@ -121,14 +123,14 @@ elif user_menu == "Athlete wise Analysis":
 
     athlete_df = df.drop_duplicates(subset=['Name', 'region'])
 
-    # Age distribution (SAFE: no distplot dependency)
+    # ---- AGE DISTRIBUTION (SAFE) ---- #
     st.subheader("Age Distribution")
 
     fig, ax = plt.subplots()
     sns.histplot(athlete_df['Age'].dropna(), kde=True, ax=ax)
     st.pyplot(fig)
 
-    # Height vs Weight
+    # ---- HEIGHT VS WEIGHT ---- #
     st.subheader("Height vs Weight")
 
     sport_list = df['Sport'].dropna().unique().tolist()
@@ -150,7 +152,7 @@ elif user_menu == "Athlete wise Analysis":
 
     st.pyplot(fig)
 
-    # Men vs Women
+    # ---- MEN VS WOMEN ---- #
     st.subheader("Men vs Women Participation")
 
     final = helper.men_vs_women(df)
