@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # ---------------- LOAD DATA ---------------- #
-df = pd.read_csv('athlete_events.csv')
-region_df = pd.read_csv('noc_regions.csv')
+df = pd.read_csv("athlete_events.csv")
+region_df = pd.read_csv("noc_regions.csv")
 
 df = preprocessor.preprocess(df, region_df)
 
@@ -20,7 +20,7 @@ st.sidebar.image(
 )
 
 user_menu = st.sidebar.radio(
-    "Select an Option",
+    "Select Option",
     ["Medal Tally", "Overall Analysis", "Country-wise Analysis", "Athlete wise Analysis"]
 )
 
@@ -34,9 +34,7 @@ if user_menu == "Medal Tally":
     selected_year = st.selectbox("Select Year", years)
     selected_country = st.selectbox("Select Country", country)
 
-    medal_tally = helper.fetch_medal_tally(df, selected_year, selected_country)
-
-    st.table(medal_tally)
+    st.table(helper.fetch_medal_tally(df, selected_year, selected_country))
 
 # ---------------- OVERALL ANALYSIS ---------------- #
 elif user_menu == "Overall Analysis":
@@ -71,10 +69,10 @@ elif user_menu == "Overall Analysis":
         st.warning("No data available")
     else:
         fig, ax = plt.subplots(figsize=(12, 8))
-        sns.heatmap(pivot.astype(float), ax=ax)
+        sns.heatmap(pivot.astype(float), ax=ax, annot=False)
         st.pyplot(fig)
 
-    # ---- TOP ATHLETES ---- #
+    # ---- MOST SUCCESSFUL ATHLETES ---- #
     sport_list = df['Sport'].dropna().unique().tolist()
     sport_list.sort()
     sport_list.insert(0, "Overall")
@@ -99,19 +97,22 @@ elif user_menu == "Country-wise Analysis":
     fig = px.line(country_df, x="Year", y="Medal")
     st.plotly_chart(fig)
 
-    # ---- HEATMAP SAFE FIX ---- #
+    # ---- HEATMAP SAFE FIX (MAIN ERROR FIX) ---- #
     st.subheader("Sport-wise Performance")
 
     pt = helper.country_event_heatmap(df, selected_country)
 
-    if pt is None or pt.empty:
-        st.warning("No medal data available")
+    if pt is None or pt.empty or pt.shape[0] == 0 or pt.shape[1] == 0:
+        st.warning("No medal data available for this country")
     else:
-        pt = pt.fillna(0)
+        pt = pt.fillna(0).astype(float)
 
-        fig, ax = plt.subplots(figsize=(12, 8))
-        sns.heatmap(pt.astype(float), ax=ax)
-        st.pyplot(fig)
+        if pt.to_numpy().sum() == 0:
+            st.warning("No medal records found for this country")
+        else:
+            fig, ax = plt.subplots(figsize=(12, 8))
+            sns.heatmap(pt, ax=ax, annot=False)
+            st.pyplot(fig)
 
     # ---- TOP ATHLETES ---- #
     st.table(helper.most_successful_countrywise(df, selected_country))
@@ -123,7 +124,7 @@ elif user_menu == "Athlete wise Analysis":
 
     athlete_df = df.drop_duplicates(subset=['Name', 'region'])
 
-    # ---- AGE DISTRIBUTION (SAFE) ---- #
+    # ---- AGE DISTRIBUTION ---- #
     st.subheader("Age Distribution")
 
     fig, ax = plt.subplots()
