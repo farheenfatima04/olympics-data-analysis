@@ -24,19 +24,21 @@ user_menu = st.sidebar.radio(
     ["Medal Tally", "Overall Analysis", "Country-wise Analysis", "Athlete wise Analysis"]
 )
 
-# ---------------- MEDAL TALLY ---------------- #
+# ================= MEDAL TALLY ================= #
 if user_menu == "Medal Tally":
 
-    st.title("Medal Tally")
+    st.sidebar.header("Filters")
 
     years, country = helper.country_year_list(df)
 
-    selected_year = st.selectbox("Select Year", years)
-    selected_country = st.selectbox("Select Country", country)
+    selected_year = st.sidebar.selectbox("Select Year", years)
+    selected_country = st.sidebar.selectbox("Select Country", country)
+
+    st.title("Medal Tally")
 
     st.table(helper.fetch_medal_tally(df, selected_year, selected_country))
 
-# ---------------- OVERALL ANALYSIS ---------------- #
+# ================= OVERALL ANALYSIS ================= #
 elif user_menu == "Overall Analysis":
 
     st.title("Top Statistics")
@@ -54,7 +56,7 @@ elif user_menu == "Overall Analysis":
         fig = px.line(data, x="Edition", y=col)
         st.plotly_chart(fig)
 
-    # ---- HEATMAP SAFE ---- #
+    # ---- HEATMAP ---- #
     st.subheader("Events Over Time by Sport")
 
     pivot = df.drop_duplicates(['Year', 'Sport', 'Event']).pivot_table(
@@ -81,7 +83,7 @@ elif user_menu == "Overall Analysis":
 
     st.table(helper.most_successful(df, selected_sport))
 
-# ---------------- COUNTRY ANALYSIS ---------------- #
+# ================= COUNTRY ANALYSIS ================= #
 elif user_menu == "Country-wise Analysis":
 
     st.title("Country Analysis")
@@ -97,19 +99,18 @@ elif user_menu == "Country-wise Analysis":
     fig = px.line(country_df, x="Year", y="Medal")
     st.plotly_chart(fig)
 
-    # ---- SAFE HEATMAP FIX ---- #
-    st.title(selected_country + " excels in the following sports")
+    # ---- SAFE HEATMAP ---- #
+    st.subheader("Sport-wise Performance")
 
     pt = helper.country_event_heatmap(df, selected_country)
 
-    # safety checks
     if pt is None or pt.empty:
         st.warning("No data available for this country")
     else:
         pt = pt.fillna(0)
 
         if pt.to_numpy().sum() == 0:
-            st.warning("No medal records to display heatmap")
+            st.warning("No medal records found")
         else:
             fig, ax = plt.subplots(figsize=(15, 10))
             sns.heatmap(pt.astype(float), annot=False, cmap="YlGnBu", ax=ax)
@@ -118,7 +119,7 @@ elif user_menu == "Country-wise Analysis":
     # ---- TOP ATHLETES ---- #
     st.table(helper.most_successful_countrywise(df, selected_country))
 
-# ---------------- ATHLETE ANALYSIS ---------------- #
+# ================= ATHLETE ANALYSIS ================= #
 elif user_menu == "Athlete wise Analysis":
 
     st.title("Athlete Analysis")
