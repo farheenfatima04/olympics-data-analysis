@@ -82,6 +82,7 @@ elif user_menu == "Overall Analysis":
     st.table(helper.most_successful(df, selected_sport))
 
 # ---------------- COUNTRY ANALYSIS ---------------- #
+# ---------------- COUNTRY ANALYSIS ---------------- #
 elif user_menu == "Country-wise Analysis":
 
     st.title("Country Analysis")
@@ -97,12 +98,11 @@ elif user_menu == "Country-wise Analysis":
     fig = px.line(country_df, x="Year", y="Medal")
     st.plotly_chart(fig)
 
-    # ---- SAFE HEATMAP FIX ---- #
-    st.title(selected_country + " excels in the following sports")
+    # ---- MODERN HEATMAP (LIKE YOUR IMAGE) ---- #
+    st.title(f"{selected_country} excels in the following sports")
 
     pt = helper.country_event_heatmap(df, selected_country)
 
-    # safety checks
     if pt is None or pt.empty:
         st.warning("No data available for this country")
     else:
@@ -111,10 +111,41 @@ elif user_menu == "Country-wise Analysis":
         if pt.to_numpy().sum() == 0:
             st.warning("No medal records to display heatmap")
         else:
+
+            # ---------- STYLE SETTINGS (DARK THEME) ---------- #
+            plt.style.use("dark_background")
+
             fig, ax = plt.subplots(figsize=(15, 10))
-            sns.heatmap(pt.astype(float), annot=False, cmap="YlGnBu", ax=ax)
+
+            # Set dark background like reference image
+            fig.patch.set_facecolor("#0b0f1a")
+            ax.set_facecolor("#0b0f1a")
+
+            # ---------- HEATMAP ---------- #
+            sns.heatmap(
+                pt.astype(int),
+                ax=ax,
+                cmap="rocket_r",          # 🔥 orange-red glow like your image
+                annot=True,
+                fmt="d",
+                linewidths=0.5,
+                linecolor="#1f2937",      # subtle grid lines
+                cbar=True,
+                annot_kws={"size": 8, "color": "white"}
+            )
+
+            # ---------- TEXT STYLING ---------- #
+            ax.set_xlabel("Year", color="white", fontsize=12)
+            ax.set_ylabel("Sports", color="white", fontsize=12)
+
+            ax.tick_params(colors="white", labelsize=9)
+
+            plt.xticks(rotation=45)
+
             st.pyplot(fig)
 
+    # ---- TOP ATHLETES ---- #
+    st.table(helper.most_successful_countrywise(df, selected_country))
     # ---- TOP ATHLETES ---- #
     st.table(helper.most_successful_countrywise(df, selected_country))
 
